@@ -7,22 +7,36 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   
   try {
-const response = await notion.databases.query({
-  database_id: databaseId,
-  // Enlève le filtre pour tester
-});
+    const response = await notion.databases.query({
+      database_id: databaseId,
+    });
 
-    const posts = response.results.map(page => ({
-      id: page.id,
-      title: page.properties.title?.title[0]?.plain_text || "",
-      slug: page.properties.slug?.rich_text[0]?.plain_text || "",
-      date: page.properties.date?.date?.start || "",
-      excerpt: page.properties.excerpt?.rich_text[0]?.plain_text || "",
-      category: page.properties.category?.select?.name || "",
-      cover: page.properties.cover?.files[0]?.file?.url || "",
-    }));
+    const posts = response.results.map(page => {
+      const props = page.properties;
+      
+      // Fonction helper pour extraire le texte
+      const getText = (prop) => {
+        if (prop?.title) return prop.title[0]?.plain_text || "";
+        if (prop?.rich_text) return prop.rich_text[0]?.plain_text || "";
+        return "";
+      };
+      
+      return {
+        id: page.id,
+        title: getText(props.title),
+        slug: getText(props.slug),
+        date: props.date?.date?.start || "",
+        excerpt: getText(props.excerpt),
+        category: props.category?.select?.name || "",
+        cover: props.cover?.files?.[0]?.file?.url || props.cover?.files?.[0]?.external?.url || "",
+        published: props.published?.checkbox || false
+      };
+    });
 
-    res.status(200).json(posts);
+    // Filtre seulement les publiés
+    const publishedPosts = posts.filter(p => p.published);
+
+    res.status(200).json(publishedPosts);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
