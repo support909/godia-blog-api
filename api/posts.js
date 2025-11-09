@@ -7,10 +7,10 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   
   try {
-    const response = await notion.databases.query({
-      database_id: databaseId,
-      filter: { property: "published", checkbox: { equals: true } }
-    });
+const response = await notion.databases.query({
+  database_id: databaseId,
+  // Enlève le filtre pour tester
+});
 
     const posts = response.results.map(page => ({
       id: page.id,
