@@ -33,11 +33,9 @@ module.exports = async (req, res) => {
       };
     });
 
-    // Filtre seulement les publiés
-    const publishedPosts = posts.filter(p => p.published);
-
-    res.status(200).json(publishedPosts);
+    // NE FILTRE PAS pour voir les données
+    res.status(200).json(posts);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message, stack: error.stack });
   }
 };
