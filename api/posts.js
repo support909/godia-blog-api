@@ -11,30 +11,17 @@ module.exports = async (req, res) => {
       database_id: databaseId,
     });
 
-    const posts = response.results.map(page => {
-      const props = page.properties;
-      
-      // Fonction helper pour extraire le texte
-      const getText = (prop) => {
-        if (prop?.title) return prop.title[0]?.plain_text || "";
-        if (prop?.rich_text) return prop.rich_text[0]?.plain_text || "";
-        return "";
-      };
-      
-      return {
-        id: page.id,
-        title: getText(props.title),
-        slug: getText(props.slug),
-        date: props.date?.date?.start || "",
-        excerpt: getText(props.excerpt),
-        category: props.category?.select?.name || "",
-        cover: props.cover?.files?.[0]?.file?.url || props.cover?.files?.[0]?.external?.url || "",
-        published: props.published?.checkbox || false
-      };
-    });
+    // DEBUG: Affiche les noms de propriétés
+    if (response.results.length > 0) {
+      const propertyNames = Object.keys(response.results[0].properties);
+      return res.status(200).json({ 
+        debug: "Property names found",
+        properties: propertyNames,
+        firstPage: response.results[0].properties
+      });
+    }
 
-    // NE FILTRE PAS pour voir les données
-    res.status(200).json(posts);
+    res.status(200).json({ error: "No pages found" });
   } catch (error) {
     res.status(500).json({ error: error.message, stack: error.stack });
   }
