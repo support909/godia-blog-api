@@ -9,20 +9,30 @@ module.exports = async (req, res) => {
   try {
     const response = await notion.databases.query({
       database_id: databaseId,
+      filter: {
+        property: "published",
+        checkbox: {
+          equals: true
+        }
+      }
     });
 
-    // DEBUG: Affiche les noms de propriétés
-    if (response.results.length > 0) {
-      const propertyNames = Object.keys(response.results[0].properties);
-      return res.status(200).json({ 
-        debug: "Property names found",
-        properties: propertyNames,
-        firstPage: response.results[0].properties
-      });
-    }
+    const posts = response.results.map(page => {
+      const props = page.properties;
+      
+      return {
+        id: page.id,
+        title: props.title?.title?.[0]?.plain_text || "",
+        slug: props.slug?.rich_text?.[0]?.plain_text || "",
+        date: props.date?.date?.start || "",
+        excerpt: props.excerpt?.rich_text?.[0]?.plain_text || "",
+        category: props.category?.select?.name || "",
+        cover: props.cover?.files?.[0]?.file?.url || props.cover?.files?.[0]?.external?.url || ""
+      };
+    });
 
-    res.status(200).json({ error: "No pages found" });
+    res.status(200).json(posts);
   } catch (error) {
-    res.status(500).json({ error: error.message, stack: error.stack });
+    res.status(500).json({ error: error.message });
   }
 };
