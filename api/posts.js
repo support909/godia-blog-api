@@ -8,13 +8,7 @@ module.exports = async (req, res) => {
   
   try {
     const response = await notion.databases.query({
-      database_id: databaseId,
-      filter: {
-        property: "published",
-        checkbox: {
-          equals: true
-        }
-      }
+      database_id: databaseId
     });
 
     const posts = response.results.map(page => {
